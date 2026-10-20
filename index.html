@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>かんたん営業日報</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="営業日報">
+<meta name="theme-color" content="#1f6feb">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231f6feb'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white'%3E報%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2330;--sub:#667085;--line:#e3e6eb;--acc:#1f6feb;--ok:#1a8f4c;--warn:#c47a00;--bad:#c4322b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Yu Gothic UI","Meiryo",sans-serif;font-size:16px;line-height:1.6}
+main{max-width:520px;margin:0 auto;padding:12px 16px 40px}
+h1{font-size:18px;margin:4px 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.hint{color:var(--sub);font-size:13px}
+.big{font-size:24px;font-weight:bold}
+.bar{height:12px;background:#e9ecf1;border-radius:6px;position:relative;overflow:hidden;margin:6px 0}
+.bar i{position:absolute;top:0;bottom:0}
+.bar b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.msg{font-size:14px;padding:8px 10px;border-radius:8px;margin-top:8px}
+.ok{background:#ecf8f0}.warn{background:#fff6e6}.bad{background:#fdeeee}
+.cnt{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.cnt .lb{font-size:17px}
+.cnt .ctl{display:flex;align-items:center;gap:10px}
+.cnt button{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:24px;cursor:pointer;touch-action:manipulation}
+.cnt button.p{background:var(--acc);color:#fff;border:0}
+.cnt .v{min-width:36px;text-align:center;font-size:24px;font-weight:bold}
+input,textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+textarea{min-height:60px}
+.row{display:flex;gap:8px;align-items:center}
+button.main{width:100%;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px;font:inherit;font-size:17px;cursor:pointer}
+button.sub{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer}
+.saved{color:var(--ok);font-size:13px;height:18px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{border-bottom:1px solid var(--line);padding:5px 4px;vertical-align:top}
+td.n{text-align:right;white-space:nowrap}
+details summary{cursor:pointer;color:var(--sub);font-size:14px}
+label{font-size:13px;color:var(--sub);display:block;margin-top:8px}
+/* 案件 */
+.deal{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
+.deal .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.deal .nm{font-weight:bold;word-break:break-all}
+.deal .amt{white-space:nowrap;font-weight:bold}
+.deal .act{display:flex;gap:6px;margin-top:8px}
+.deal .act button{flex:1;padding:8px;border-radius:8px;font:inherit;font-size:14px;cursor:pointer}
+.won{background:var(--ok);color:#fff;border:0}
+.lost{background:#fff;color:var(--bad);border:1px solid var(--bad)}
+.rk{display:inline-block;min-width:28px;text-align:center;border-radius:6px;font-size:13px;font-weight:bold;padding:0 6px;cursor:pointer;border:0}
+.rA{background:#1a8f4c;color:#fff}.rB{background:#f0b429;color:#1d2330}.rC{background:#d0d5dd;color:#1d2330}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:8px;border:1px solid var(--line);background:#fff;border-radius:8px;font:inherit;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{padding:8px 12px;border:1px solid var(--line);background:#fff;border-radius:18px;font:inherit;font-size:14px;cursor:pointer}
+.chips button.on{background:var(--bad);color:#fff;border-color:var(--bad)}
+dialog{border:0;border-radius:14px;padding:16px;width:min(92vw,440px)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--sub)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+</style>
+</head>
+<body>
+<main>
+<h1>かんたん営業日報</h1>
+
+<!-- 今月 -->
+<div class="card" id="month"></div>
+
+<!-- 目標入力（未設定の月だけ大きく出す） -->
+<div class="card" id="goalCard" style="display:none">
+  <b>今月の目標を決めましょう</b>
+  <label>今月の売上目標（円）</label><input type="number" id="g_sales" inputmode="numeric" step="10000" placeholder="例：3000000">
+  <details style="margin-top:8px"><summary>くわしく設定する（任意）</summary>
+    <label>平均受注単価（円）…入れると「必要な訪問数」も出ます</label><input type="number" id="g_price" inputmode="numeric">
+    <label>訪問 → 受注になる割合（%）</label><input type="number" id="g_rate" inputmode="numeric" placeholder="例：10">
+    <label>今月がんばること（ひとこと）</label><input id="g_theme">
+  </details>
+  <div style="margin-top:10px"><button class="main" id="g_save">目標を決める</button></div>
+</div>
+
+<!-- 今日 -->
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <b id="dayLabel"></b>
+    <input type="date" id="date" style="width:auto">
+  </div>
+  <div class="cnt"><span class="lb">訪問・商談</span><span class="ctl"><button data-k="visits" data-d="-1">−</button><span class="v" id="v_visits">0</span><button class="p" data-k="visits" data-d="1">＋</button></span></div>
+  <div class="cnt"><span class="lb">提案・見積</span><span class="ctl"><button data-k="proposals" data-d="-1">−</button><span class="v" id="v_proposals">0</span><button class="p" data-k="proposals" data-d="1">＋</button></span></div>
+  <div class="cnt"><span class="lb">受注</span><span class="ctl"><button data-k="orders" data-d="-1">−</button><span class="v" id="v_orders">0</span><button class="p" data-k="orders" data-d="1">＋</button></span></div>
+  <label>売上（受注金額・円）<span class="hint">… 下の案件で「受注」を押すと自動で入ります</span></label><input type="number" id="amount" inputmode="numeric" step="1000" placeholder="0">
+  <label>ひとこと（気づき・明日やること）</label><textarea id="note" placeholder="例：〇〇工業さんは価格より納期重視。明日見積を出す（担当者名・電話番号は書かない）"></textarea>
+  <div class="saved" id="saved"></div>
+  <button class="main" id="copy">日報をコピー（LINE・メールに貼り付け）</button>
+</div>
+
+<!-- 見積・見込み案件 -->
+<div class="card">
+  <div class="row" style="justify-content:space-between"><b>見積・見込み案件</b><button class="sub" id="addDeal">＋ 見積を追加</button></div>
+  <div class="legend" style="margin-top:6px"><span style="--c:#1a8f4c">A ほぼ決まり</span><span style="--c:#f0b429">B 五分五分</span><span style="--c:#d0d5dd">C まだ低い</span><span>（記号を押すと変更）</span></div>
+  <div id="deals"></div>
+  <details style="margin-top:10px"><summary id="closedSum">今月の受注・失注</summary><div id="closed"></div></details>
+</div>
+
+<!-- 最近 -->
+<div class="card"><b>最近の記録</b><div id="recent" style="margin-top:6px"></div></div>
+
+<details class="card"><summary>目標の変更・バックアップ</summary>
+  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="sub" id="editGoal">今月の目標を変更</button>
+    <button class="sub" id="bk">バックアップ保存</button>
+    <button class="sub" id="csv">日々の記録CSV</button>
+    <button class="sub" id="csvD">案件CSV</button>
+    <label class="sub" style="margin:0;color:var(--ink)">復元<input type="file" id="imp" accept=".json" style="display:none"></label>
+  </div>
+  <p class="hint">データはこの端末のブラウザの中だけに保存されます。ときどきバックアップしてください。</p>
+</details>
+</main>
+
+<!-- 見積追加・編集 -->
+<dialog id="dlgDeal">
+  <b id="dTitle">見積を追加</b>
+  <label>会社名・件名</label><input id="d_name" placeholder="例：〇〇工業 ポンプ更新">
+  <label>見積金額（円）</label><input type="number" id="d_amt" inputmode="numeric" step="1000">
+  <label>受注見込み</label>
+  <div class="seg" id="d_rank"><button data-r="A">A ほぼ決まり</button><button data-r="B" class="on">B 五分五分</button><button data-r="C">C まだ低い</button></div>
+  <label>受注予定月</label><input type="month" id="d_month">
+  <label>次にやること（任意）</label><input id="d_next" placeholder="例：来週火曜に回答をもらう">
+  <p class="hint" id="d_autoNote">追加すると、今日の「提案・見積」が＋1されます</p>
+  <div class="row" style="margin-top:10px"><button class="sub" id="d_cancel" style="flex:1">やめる</button><button class="main" id="d_ok" style="flex:2">保存</button></div>
+</dialog>
+
+<!-- 失注理由 -->
+<dialog id="dlgLost">
+  <b>失注の理由</b> <span class="hint" id="l_name"></span>
+  <p class="hint" style="margin:4px 0 8px">理由を残すと、次の提案の改善点が見えてきます</p>
+  <div class="chips" id="l_reasons"></div>
+  <label>くわしく（どこに負けたか・何が足りなかったか）</label><textarea id="l_note" placeholder="例：他社が5%安かった。納期は当社が有利だった"></textarea>
+  <div class="row" style="margin-top:10px"><button class="sub" id="l_cancel" style="flex:1">やめる</button><button class="main" id="l_ok" style="flex:2;background:var(--bad)">失注にする</button></div>
+</dialog>
+
+<script>
+const KEY='kantan-eigyo-nippo-v1';
+const REASONS=['価格','納期','仕様・性能','競合に先を越された','提案のタイミング','予算がなくなった','計画の中止・延期','その他'];
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=ymd(new Date());
+const yen=n=>Math.round(n||0).toLocaleString('ja-JP')+'円';
+const man=n=>(Math.round((n||0)/1000)/10).toLocaleString('ja-JP')+'万円';
+const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const WD='日月火水木金土';
+const md=d=>`${+d.slice(5,7)}/${+d.slice(8)}`;
+let S=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||null}catch(e){return null}})()||{};
+S.goals=S.goals||{};S.logs=S.logs||{};S.deals=S.deals||[];
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+const curDate=()=>$('date').value||today;
+const ym=()=>curDate().slice(0,7);
+const blank=()=>({visits:0,proposals:0,orders:0,amount:0,note:''});
+const getLog=d=>({...blank(),...S.logs[d]});
+function setLog(d,l){if(!l.visits&&!l.proposals&&!l.orders&&!l.amount&&!l.note)delete S.logs[d];else S.logs[d]=l}
+function weekdays(m,until){const[y,mo]=m.split('-').map(Number);let c=0;for(let d=1;d<=new Date(y,mo,0).getDate();d++){const dt=new Date(y,mo-1,d);if(until&&ymd(dt)>until)break;if(dt.getDay()%6)c++}return c}
+function monthSum(m){return Object.entries(S.logs).filter(([d])=>d.startsWith(m)).reduce((a,[,l])=>({v:a.v+l.visits,p:a.p+l.proposals,o:a.o+l.orders,amt:a.amt+l.amount}),{v:0,p:0,o:0,amt:0})}
+const openDeals=()=>S.deals.filter(d=>d.status==='open');
+// その月に受注が見込める案件（予定月が過ぎたものも今月扱い）
+function prospect(m){const r={A:0,B:0,C:0};openDeals().forEach(d=>{if((d.month||m)<=m)r[d.rank]+=d.amount});return r}
+
+// ===== 今月の状況 =====
+function renderMonth(){const m=ym(),g=S.goals[m],t=monthSum(m),pr=prospect(m);
+  $('goalCard').style.display=g?'none':'block';
+  const isCur=m===today.slice(0,7),ratio=m<today.slice(0,7)?1:isCur?weekdays(m,today)/weekdays(m):0;
+  const pros=`<div class="hint" style="margin-top:4px">受注見込み（${+m.slice(5)}月まで予定）：<b style="color:var(--ink)">A ${man(pr.A)}</b> ／ B ${man(pr.B)} ／ C ${man(pr.C)}</div>`;
+  if(!g){$('month').innerHTML=`<span class="hint">${+m.slice(5)}月の売上</span><div class="big">${man(t.amt)}</div>${pros}`;return}
+  const G=g.sales,w=v=>Math.min(v/G,1)*100;
+  const r=t.amt/G,c=r>=ratio*0.95?'var(--ok)':r>=ratio*0.8?'var(--warn)':'var(--bad)';
+  const remDays=Math.max(weekdays(m)-weekdays(m,isCur?today:null)+(isCur&&new Date().getDay()%6?1:0),1);
+  let msg,cls;
+  if(t.amt>=G){msg='目標達成！ ここからの上積みが自分の力です。';cls='ok'}
+  else if(t.amt+pr.A>=G){msg=`売上＋見込みAで目標に届きます。<b>見込みAを確実に決めきる</b>ことに集中しましょう。`;cls='ok'}
+  else if(t.amt+pr.A+pr.B>=G){msg=`見込みAだけでは <b>${man(G-t.amt-pr.A)}</b> 足りません。<b>見込みBをAに上げる</b>動きが必要です。`;cls='warn'}
+  else{msg=`見込みA・Bを全部決めても <b>${man(G-t.amt-pr.A-pr.B)}</b> 足りません。<b>新しい見積を増やす</b>必要があります。`;cls='bad';
+    if(g.price&&g.rate){const needV=Math.ceil((G-t.amt-pr.A-pr.B)/g.price/(g.rate/100));msg+=`<br>→ 目安：訪問あと <b>${needV}件</b>（1日 ${(needV/remDays).toFixed(1)}件）`}}
+  $('month').innerHTML=`<span class="hint">${+m.slice(5)}月の売上 ／ 目標 ${man(G)}</span>
+   <div class="big">${man(t.amt)} <span class="hint">達成率 ${Math.round(r*100)}%</span></div>
+   <div class="bar"><i style="left:0;width:${w(t.amt)}%;background:${c}"></i><i style="left:${w(t.amt)}%;width:${Math.max(0,w(t.amt+pr.A)-w(t.amt))}%;background:#1a8f4c;opacity:.35"></i><i style="left:${w(t.amt+pr.A)}%;width:${Math.max(0,w(t.amt+pr.A+pr.B)-w(t.amt+pr.A))}%;background:#f0b429;opacity:.45"></i><b style="left:${ratio*100}%"></b></div>
+   <div class="hint">濃い色＝売上　薄い緑＝見込みA　薄い黄＝見込みB　黒線＝今日時点の目安（${Math.round(ratio*100)}%）</div>
+   ${pros}
+   <div class="hint">今月 訪問${t.v}・見積${t.p}・受注${t.o}</div>
+   ${g.theme?`<div class="hint" style="margin-top:4px">今月がんばること：<b style="color:var(--ink)">${esc(g.theme)}</b></div>`:''}
+   <div class="msg ${cls}">${msg}</div>`}
+
+// ===== 目標 =====
+$('g_save').onclick=()=>{const s=num($('g_sales').value);if(!s)return alert('売上目標を入れてください');
+  S.goals[ym()]={sales:s,price:num($('g_price').value),rate:num($('g_rate').value),theme:$('g_theme').value.trim()};save();render()};
+$('editGoal').onclick=()=>{const g=S.goals[ym()]||{};$('g_sales').value=g.sales||'';$('g_price').value=g.price||'';$('g_rate').value=g.rate||'';$('g_theme').value=g.theme||'';
+  $('goalCard').style.display='block';$('goalCard').scrollIntoView({behavior:'smooth'})};
+
+// ===== 今日（押した時点で自動保存）=====
+let tmr;
+function flash(t){$('saved').textContent='✓ '+(t||'保存しました');clearTimeout(tmr);tmr=setTimeout(()=>$('saved').textContent='',1800)}
+function put(l){setLog(curDate(),l);save();flash();renderMonth();renderRecent()}
+document.querySelectorAll('.cnt button').forEach(b=>b.onclick=()=>{const l=getLog(curDate());l[b.dataset.k]=Math.max(0,l[b.dataset.k]+ +b.dataset.d);put(l);fillDay()});
+$('amount').oninput=()=>put({...getLog(curDate()),amount:num($('amount').value)});
+$('note').oninput=()=>put({...getLog(curDate()),note:$('note').value});
+function fillDay(){const d=curDate(),l=getLog(d);['visits','proposals','orders'].forEach(k=>$('v_'+k).textContent=l[k]);
+  if(document.activeElement!==$('amount'))$('amount').value=l.amount||'';if(document.activeElement!==$('note'))$('note').value=l.note;
+  $('dayLabel').textContent=(d===today?'今日':'')+` ${md(d)}（${WD[new Date(d).getDay()]}）`}
+$('date').value=today;$('date').onchange=render;
+
+// ===== 案件 =====
+let editId=null,rank='B';
+function setRank(r){rank=r;$('d_rank').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===r))}
+$('d_rank').onclick=e=>{if(e.target.dataset.r)setRank(e.target.dataset.r)};
+function openDeal(d){editId=d?d.id:null;$('dTitle').textContent=d?'案件を編集':'見積を追加';$('d_autoNote').style.display=d?'none':'block';
+  $('d_name').value=d?d.name:'';$('d_amt').value=d?d.amount||'':'';$('d_month').value=d?d.month:ym();$('d_next').value=d?d.next||'':'';setRank(d?d.rank:'B');$('dlgDeal').showModal()}
+$('addDeal').onclick=()=>openDeal(null);
+$('d_cancel').onclick=()=>$('dlgDeal').close();
+$('d_ok').onclick=()=>{const name=$('d_name').value.trim();if(!name)return alert('会社名・件名を入れてください');
+  const v={name,amount:num($('d_amt').value),rank,month:$('d_month').value||ym(),next:$('d_next').value.trim()};
+  if(editId){Object.assign(S.deals.find(d=>d.id===editId),v)}
+  else{S.deals.push({id:Date.now(),status:'open',created:curDate(),...v});const l=getLog(curDate());l.proposals++;setLog(curDate(),l)}
+  save();$('dlgDeal').close();flash(editId?'案件を更新しました':'見積を追加しました（提案・見積 ＋1）');render()};
+const RK=['A','B','C'];
+function dealCard(d){return`<div class="deal"><div class="top"><span><button class="rk r${d.rank}" data-rk="${d.id}">${d.rank}</button> <span class="nm">${esc(d.name)}</span></span><span class="amt">${man(d.amount)}</span></div>
+  <div class="hint">${+d.month.slice(5)}月受注予定 ／ 見積日 ${md(d.created)}${d.month<today.slice(0,7)?' <b style="color:var(--bad)">予定月を過ぎています</b>':''}${d.next?`<br>次：${esc(d.next)}`:''}</div>
+  <div class="act"><button class="won" data-won="${d.id}">受注</button><button class="lost" data-lost="${d.id}">失注</button><button class="sub" data-ed="${d.id}" style="flex:.6">編集</button></div></div>`}
+function renderDeals(){const od=openDeals().sort((a,b)=>RK.indexOf(a.rank)-RK.indexOf(b.rank)||(a.month<b.month?-1:1));
+  $('deals').innerHTML=od.length?od.map(dealCard).join(''):'<p class="hint">見積を出したら「＋ 見積を追加」で登録しておくと、受注見込みが目標と並んで見えます。</p>';
+  const m=ym(),cl=S.deals.filter(d=>d.status!=='open'&&(d.closed||'').startsWith(m)).sort((a,b)=>a.closed<b.closed?1:-1);
+  const won=cl.filter(d=>d.status==='won'),lost=cl.filter(d=>d.status==='lost');
+  $('closedSum').textContent=`${+m.slice(5)}月の受注 ${won.length}件・失注 ${lost.length}件${won.length+lost.length?`（決まった率 ${Math.round(won.length/(won.length+lost.length)*100)}%）`:''}`;
+  const cnt={};lost.forEach(d=>cnt[d.reason]=(cnt[d.reason]||0)+1);
+  $('closed').innerHTML=(lost.length?`<div class="msg bad" style="margin-bottom:6px">失注の理由：${Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<b>${esc(k)}</b> ${v}件`).join('、')}</div>`:'')
+   +(cl.length?`<table>${cl.map(d=>`<tr><td>${md(d.closed)}</td><td>${d.status==='won'?'<b style="color:var(--ok)">受注</b>':'<b style="color:var(--bad)">失注</b>'} ${esc(d.name)}${d.status==='lost'?`<div class="hint">理由：${esc(d.reason)}${d.reasonNote?' … '+esc(d.reasonNote):''}</div>`:''}</td><td class="n">${man(d.amount)}<br><button class="sub" data-undo="${d.id}" style="padding:2px 8px;font-size:12px">戻す</button></td></tr>`).join('')}</table>`:'<p class="hint">まだありません</p>')}
+$('deals').onclick=e=>{const t=e.target,f=id=>S.deals.find(d=>d.id==id);
+  if(t.dataset.rk){const d=f(t.dataset.rk);d.rank=RK[(RK.indexOf(d.rank)+1)%3];save();render()}
+  if(t.dataset.ed)openDeal(f(t.dataset.ed));
+  if(t.dataset.won){const d=f(t.dataset.won);const a=prompt(`「${d.name}」を受注にします。\n受注金額（円）を確認してください`,d.amount);if(a===null)return;
+    d.amount=num(a);d.status='won';d.closed=curDate();const l=getLog(curDate());l.orders++;l.amount+=d.amount;setLog(curDate(),l);save();flash('受注！ 今日の売上に入れました');render()}
+  if(t.dataset.lost)openLost(f(t.dataset.lost))};
+$('closed').onclick=e=>{const id=e.target.dataset.undo;if(!id)return;const d=S.deals.find(x=>x.id==id);
+  if(!confirm(`「${d.name}」を見積中に戻しますか？`+(d.status==='won'?'\n（その日の売上・受注件数からも差し引きます）':'')))return;
+  if(d.status==='won'){const l=getLog(d.closed);l.orders=Math.max(0,l.orders-1);l.amount=Math.max(0,l.amount-d.amount);setLog(d.closed,l)}
+  d.status='open';delete d.closed;delete d.reason;delete d.reasonNote;save();render()};
+// 失注
+let lostId=null,reason='';
+$('l_reasons').innerHTML=REASONS.map(r=>`<button data-r="${r}">${r}</button>`).join('');
+$('l_reasons').onclick=e=>{if(!e.target.dataset.r)return;reason=e.target.dataset.r;$('l_reasons').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===reason))};
+function openLost(d){lostId=d.id;reason='';$('l_name').textContent=d.name;$('l_note').value='';$('l_reasons').querySelectorAll('button').forEach(b=>b.classList.remove('on'));$('dlgLost').showModal()}
+$('l_cancel').onclick=()=>$('dlgLost').close();
+$('l_ok').onclick=()=>{if(!reason)return alert('理由を1つ選んでください');const d=S.deals.find(x=>x.id===lostId);
+  d.status='lost';d.closed=curDate();d.reason=reason;d.reasonNote=$('l_note').value.trim();save();$('dlgLost').close();flash('失注を記録しました');render()};
+
+// ===== 日報コピー =====
+$('copy').onclick=async()=>{const d=curDate(),l=getLog(d),m=ym(),g=S.goals[m],t=monthSum(m),pr=prospect(m);
+  const nw=S.deals.filter(x=>x.created===d),won=S.deals.filter(x=>x.status==='won'&&x.closed===d),lost=S.deals.filter(x=>x.status==='lost'&&x.closed===d);
+  const L=[`【日報】${md(d)}（${WD[new Date(d).getDay()]}）`,`訪問 ${l.visits}件／見積 ${l.proposals}件／受注 ${l.orders}件${l.amount?`（${yen(l.amount)}）`:''}`];
+  nw.forEach(x=>L.push(`・見積：${x.name} ${man(x.amount)}（見込み${x.rank}・${+x.month.slice(5)}月予定）`));
+  won.forEach(x=>L.push(`・受注：${x.name} ${man(x.amount)}`));
+  lost.forEach(x=>L.push(`・失注：${x.name} ${man(x.amount)}（理由：${x.reason}${x.reasonNote?'／'+x.reasonNote:''}）`));
+  L.push(`今月 売上 ${man(t.amt)}${g?` ／ 目標 ${man(g.sales)}（${Math.round(t.amt/g.sales*100)}%）`:''}`);
+  L.push(`受注見込み A ${man(pr.A)}・B ${man(pr.B)}・C ${man(pr.C)}`);
+  if(l.note)L.push('ひとこと：'+l.note);
+  const txt=L.join('\n');
+  try{await navigator.clipboard.writeText(txt);alert('日報をコピーしました。LINEやメールに貼り付けてください。\n\n'+txt)}
+  catch(e){prompt('この文章をコピーしてください',txt)}};
+
+// ===== 最近 =====
+function renderRecent(){const ds=Object.keys(S.logs).sort().reverse().slice(0,7);
+  $('recent').innerHTML=ds.length?`<table>${ds.map(d=>{const l=getLog(d);return`<tr><td>${md(d)}（${WD[new Date(d).getDay()]}）</td><td class="n">訪${l.visits} 見${l.proposals} 受${l.orders}</td><td class="n">${l.amount?man(l.amount):''}</td></tr>${l.note?`<tr><td colspan="3" class="hint" style="border-top:0">${esc(l.note)}</td></tr>`:''}`}).join('')}</table>`:'<p class="hint">まだ記録がありません。上の＋を押すだけで記録されます。</p>';
+  if(ym()===today.slice(0,7)){const miss=[];for(let i=1;i<=7&&miss.length<5;i++){const x=new Date();x.setDate(x.getDate()-i);if(x.getDay()%6&&!S.logs[ymd(x)])miss.push(`${x.getMonth()+1}/${x.getDate()}`)}
+    if(miss.length>=2)$('recent').insertAdjacentHTML('afterbegin',`<div class="msg warn">未記録の日：${miss.join('、')}（上の日付を変えれば後から入力できます）</div>`)}}
+
+// ===== バックアップ =====
+function dl(n,t,ty){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()}
+const csv=rows=>'﻿'+rows.map(r=>r.map(c=>'"'+String(c??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+$('bk').onclick=()=>dl('営業日報_バックアップ_'+today+'.json',JSON.stringify(S),'application/json');
+$('csv').onclick=()=>dl('営業日報_'+today+'.csv',csv([['日付','訪問','見積','受注','売上','ひとこと']].concat(Object.keys(S.logs).sort().map(d=>{const l=getLog(d);return[d,l.visits,l.proposals,l.orders,l.amount,l.note]}))),'text/csv');
+$('csvD').onclick=()=>{const st={open:'見積中',won:'受注',lost:'失注'};dl('営業案件_'+today+'.csv',csv([['見積日','会社名・件名','金額','見込み','受注予定月','状態','決着日','失注理由','失注理由の詳細','次にやること']].concat(S.deals.map(d=>[d.created,d.name,d.amount,d.rank,d.month,st[d.status],d.closed,d.reason,d.reasonNote,d.next]))),'text/csv')};
+$('imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.logs)throw 0;
+  if(confirm('今のデータをバックアップの内容に置き換えます。よろしいですか？')){S={goals:{},deals:[],...d};save();render()}}catch(x){alert('読めませんでした')}};r.readAsText(f);e.target.value=''};
+
+function render(){renderMonth();fillDay();renderDeals();renderRecent()}
+render();
+</script>
+</body>
+</html>
